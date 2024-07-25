@@ -1,6 +1,6 @@
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
-import { signIn } from "../config";
+import { signIn, UserNotFoundError } from "../config";
 
 export const signInAction = async (formData: FormData) => {
   "use server";
@@ -12,10 +12,13 @@ export const signInAction = async (formData: FormData) => {
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      const search = new URLSearchParams({
-        error: "Invalid credentials",
-      });
+      let message = "Invalid credentials";
 
+      if (error.cause?.err instanceof UserNotFoundError) {
+        message = "User not found";
+      }
+
+      const search = new URLSearchParams({ error: message });
       return redirect(`/auth/signin?${search}`);
     }
 
